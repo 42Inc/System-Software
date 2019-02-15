@@ -21,7 +21,7 @@ Function printFileList ($Sym='-') {
 Function renameFiles {
   $iter = 1
   $List = (Get-ChildItem -Path ".\result" -File -Name).GetEnumerator() | %  {$_ | Sort-Object} | % {("result\\" + $_) |
-    Rename-Item -NewName ($iter.ToString()+$_); $iter++;}
+    Rename-Item -NewName ($iter.ToString()+"_"+$_); $iter++;}
 }
 
 $Begin = 1
