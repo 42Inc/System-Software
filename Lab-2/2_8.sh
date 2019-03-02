@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-sort /etc/passwd > $HOME/passwd.orig
+cd $HOME && sort /etc/passwd > $HOME/passwd.orig
