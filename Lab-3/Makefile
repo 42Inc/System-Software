@@ -3,7 +3,7 @@ BIN_FILE := prog
 BIN_FILE_PATH := ./bin/$(BIN_FILE)
 SRC_FILE := ./src/$(BIN_FILE).c
 
-all: one two three
+all: one two three four
 
 one: $(SRC_FILE)
 	$(CC) $(SRC_FILE) -o $(BIN_FILE_PATH)1_1 -g1 -O0
@@ -17,6 +17,12 @@ two:
 three:
 	$(CC) $(SRC_FILE) -o $(BIN_FILE_PATH)3_1 -Wall -ansi -pedantic -ggdb3 -O0
 	strip -g $(BIN_FILE_PATH)3_1
+
+four:
+	$(CC) ./src/thread.c -o $(BIN_FILE_PATH)4_1 -Wall -pthread -ansi -pedantic -ggdb3 -O0
+	objcopy --only-keep-debug $(BIN_FILE_PATH)4_1 $(BIN_FILE_PATH)4_1.debug
+	objcopy --add-gnu-debuglink=$(BIN_FILE_PATH)4_1.debug $(BIN_FILE_PATH)4_1
+	strip -g $(BIN_FILE_PATH)4_1
 
 clean:
 	rm -f ./obj/*.o
