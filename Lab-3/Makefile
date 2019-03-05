@@ -1,29 +1,47 @@
-CC := gcc
-BIN_FILE := prog
-BIN_FILE_PATH := ./bin/$(BIN_FILE)
-SRC_FILE := ./src/$(BIN_FILE).c
+CC = gcc
+OC = objcopy
+S = strip -g
+QUIET = @
 
-all: one two three four
+CFLAGS = -O0 -Wall
+OFLAGS = -c -Wall
+EFLAGS = -ansi -pedantic -ggdb3
 
-one: $(SRC_FILE)
-	$(CC) $(SRC_FILE) -o $(BIN_FILE_PATH)1_1 -g1 -O0
-	$(CC) $(SRC_FILE) -o $(BIN_FILE_PATH)1_2 -g2 -O0
-	$(CC) $(SRC_FILE) -o $(BIN_FILE_PATH)1_3 -g3 -O0
+SRC_DIR = src
+OBJ_DIR = obj
+BIN_DIR = bin
+DIRS = $(BIN_DIR) $(OBJ_DIR)
+BIN_FILE = cmpl_
+BIN_FILE_PATH = $(BIN_DIR)/$(BIN_FILE)
+SRC_FILE = $(SRC_DIR)/prog.c
+
+.PHONY: all one two three four clean
+all: $(DIRS) one two three four
+
+$(DIRS):
+	mkdir $(DIRS)
+
+one:
+	$(CC) $(CFLAGS) $(SRC_FILE) -o $(BIN_FILE_PATH)1_1 -g1
+	$(CC) $(CFLAGS) $(SRC_FILE) -o $(BIN_FILE_PATH)1_2 -g2
+	$(CC) $(CFLAGS) $(SRC_FILE) -o $(BIN_FILE_PATH)1_3 -g3
+
+
 two:
-	$(CC) $(SRC_FILE) -o $(BIN_FILE_PATH)2_1 -Wall -ansi -pedantic -ggdb3 -O0
-	objcopy --only-keep-debug $(BIN_FILE_PATH)2_1 $(BIN_FILE_PATH)2_1.debug
-	objcopy --add-gnu-debuglink=$(BIN_FILE_PATH)2_1.debug $(BIN_FILE_PATH)2_1
-	strip -g $(BIN_FILE_PATH)2_1
+	$(CC) $(CFLAGS) $(SRC_FILE) -o $(BIN_FILE_PATH)2_1 $(EFLAGS)
+	$(OC) --only-keep-debug $(BIN_FILE_PATH)2_1 $(BIN_FILE_PATH)2_1.debug
+	$(OC) --add-gnu-debuglink=$(BIN_FILE_PATH)2_1.debug $(BIN_FILE_PATH)2_1
+	$(S) $(BIN_FILE_PATH)2_1
+
 three:
-	$(CC) $(SRC_FILE) -o $(BIN_FILE_PATH)3_1 -Wall -ansi -pedantic -ggdb3 -O0
-	strip -g $(BIN_FILE_PATH)3_1
+	$(CC) $(CFLAGS) $(SRC_FILE) -o $(BIN_FILE_PATH)3_1 $(EFLAGS)
+	$(S) $(BIN_FILE_PATH)3_1
 
 four:
-	$(CC) ./src/thread.c -o $(BIN_FILE_PATH)4_1 -Wall -pthread -ansi -pedantic -ggdb3 -O0
-	objcopy --only-keep-debug $(BIN_FILE_PATH)4_1 $(BIN_FILE_PATH)4_1.debug
-	objcopy --add-gnu-debuglink=$(BIN_FILE_PATH)4_1.debug $(BIN_FILE_PATH)4_1
-	strip -g $(BIN_FILE_PATH)4_1
+	$(CC) $(CFLAGS) $(SRC_DIR)/thread.c -o $(BIN_FILE_PATH)4_1 -pthread $(EFLAGS)
+	$(OC) --only-keep-debug $(BIN_FILE_PATH)4_1 $(BIN_FILE_PATH)4_1.debug
+	$(OC) --add-gnu-debuglink=$(BIN_FILE_PATH)4_1.debug $(BIN_FILE_PATH)4_1
+	$(S) $(BIN_FILE_PATH)4_1
 
 clean:
-	rm -f ./obj/*.o
-	rm -f /bin/*
+	$(QUIET)rm -rvf $(DIRS)
