@@ -42,7 +42,8 @@ four:
 	$(OC) --only-keep-debug $(BIN_FILE_PATH)4_1 $(BIN_FILE_PATH)4_1.debug
 	$(OC) --add-gnu-debuglink=$(BIN_FILE_PATH)4_1.debug $(BIN_FILE_PATH)4_1
 	$(S) $(BIN_FILE_PATH)4_1
-	gcc ./src/thread2.c -g -D_REENTERANT -o ./bin/cmpl_4_2  -lpthread
+	gcc $(SRC_DIR)/thread2.c -g -D_REENTERANT -o $(BIN_FILE_PATH)4_2  -lpthread
+	gcc $(SRC_DIR)/fork.c -g -o $(BIN_FILE_PATH)4_3
 
 clean:
 	$(QUIET)rm -rvf $(DIRS)
