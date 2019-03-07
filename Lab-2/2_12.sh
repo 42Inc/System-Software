@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-while [ -n "$1" ] ;
+while `./cmpl $1`
 do
   echo "Param, $1"
   shift
