@@ -57,11 +57,6 @@ void free(void *ptr) {
     _initialize_my_free();
   }
 
-  if (ptr == NULL) {
-    fprintf(stderr, "%sFatal error%s: Double free or ptr is NULL\n", RED, RESET);
-    abort();
-  }
-
   fprintf(stderr, "%sFree hook%s - %p\t| %sCaller%s : %p\n", YELLOW, RESET, ptr, YELLOW, RESET, __builtin_return_address(0));
   real_free(ptr);
 }
