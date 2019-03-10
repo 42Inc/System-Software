@@ -1,7 +1,7 @@
 #include <malloc.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "memory.521.h"
+#include "memory.h"
 
 int main(int argc, char **argv) {
   int blocks_count = argc > 1 ? atoi(argv[1]) : 1000;
