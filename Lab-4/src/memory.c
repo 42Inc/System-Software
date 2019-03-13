@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define MYHEAP 0
+
 static void *(*real_malloc)(size_t) = NULL;
 static void *(*real_calloc)(size_t, size_t) = NULL;
 static void *(*real_realloc)(void *, size_t) = NULL;
@@ -16,49 +18,66 @@ void _initialize_my_calloc(void);
 void _initialize_my_free(void);
 void _initialize_my_realloc(void);
 
+static void* heap = NULL;
+
+void heap_init() {
+  heap = __libc_malloc(100);
+  fprintf(stderr, "%sInit heap complete%s\n", GREEN, RESET);
+}
+
 void *malloc(size_t size) {
+  void *ptr = NULL;
+  #if !MYHEAP
   if (real_malloc == NULL) {
     _initialize_my_malloc();
   }
-
-  void *ptr = NULL;
   ptr = real_malloc(size);
   fprintf(stderr, "%sMalloc hook%s - %p:%lu\t| %sCaller%s : %p\n", YELLOW, RESET,
           ptr, size, YELLOW, RESET, __builtin_return_address(0));
+  #else
+  #endif
   return ptr;
 }
 
 void *realloc(void *ptr, size_t size) {
+  void *new_ptr = NULL;
+  #if !MYHEAP
   if (real_realloc == NULL) {
     _initialize_my_realloc();
   }
-
-  void *new_ptr = NULL;
   new_ptr = real_realloc(ptr, size);
   fprintf(stderr, "%sRealloc hook%s - %p -> %p:%lu\t| %sCaller%s : %p\n", YELLOW, RESET, ptr,
           new_ptr, size, YELLOW, RESET, __builtin_return_address(0));
+  #else
+  #endif
   return new_ptr;
 }
 
 void *calloc(size_t blocks_count, size_t block_size) {
+  void *ptr = NULL;
+  #if !MYHEAP
   if (real_calloc == NULL) {
     _initialize_my_calloc();
   }
 
-  void *ptr = NULL;
   ptr = real_calloc(blocks_count, block_size);
   fprintf(stderr, "%sCalloc hook%s - %p:%lu x %lu\t| %sCaller%s : %p\n", YELLOW, RESET, ptr,
           blocks_count, block_size, YELLOW, RESET, __builtin_return_address(0));
+  #else
+  #endif
   return ptr;
 }
 
 void free(void *ptr) {
+  #if !MYHEAP
   if (real_free == NULL) {
     _initialize_my_free();
   }
 
   fprintf(stderr, "%sFree hook%s - %p\t| %sCaller%s : %p\n", YELLOW, RESET, ptr, YELLOW, RESET, __builtin_return_address(0));
   real_free(ptr);
+  #else
+  #endif
 }
 
 void _initialize_my_free(void) {
@@ -80,6 +99,8 @@ void _initialize_my_free(void) {
 void _initialize_my_realloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init realloc hook%s\n", CYAN, RESET);
+  if (heap == NULL)
+    heap_init();
   if (real_realloc != NULL)
     return;
   real_realloc = __libc_realloc;
@@ -96,6 +117,8 @@ void _initialize_my_realloc(void) {
 void _initialize_my_malloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init malloc hook%s\n", CYAN, RESET);
+  if (heap == NULL)
+    heap_init();
   if (real_malloc != NULL)
     return;
   real_malloc = __libc_malloc;
@@ -112,6 +135,8 @@ void _initialize_my_malloc(void) {
 void _initialize_my_calloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init calloc hook%s\n", CYAN, RESET);
+  if (heap == NULL)
+    heap_init();
   if (real_calloc != NULL)
     return;
   real_calloc = __libc_calloc;
