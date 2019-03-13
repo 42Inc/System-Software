@@ -2,7 +2,6 @@ CC = gcc
 QUIET = @
 CFLAGS = -g3 -O0 -Wall
 OFLAGS = -c -Wall
-LIB = -lm
 
 SRC_DIR = src
 OBJ_DIR = obj
@@ -15,9 +14,18 @@ HEAP_OBJ = $(OBJ_DIR)/heap.o
 .PHONY: all bins objs clean
 all: bins
 
+
 bins: $(DIRS) objs
 	$(CC) $(MS_OBJ) $(CFLAGS) -o $(BIN_DIR)/ms_cmpl $(LIB)
 	$(CC) $(HEAP_OBJ) $(CFLAGS) -o $(BIN_DIR)/heap_cmpl $(LIB)
+	$(CC)  $(SRC_DIR)/main.c -o $(BIN_DIR)/main $(LIB) $(CFLAGS) -ldl -fPIC
+	gcc -shared -fPIC -ldl  $(SRC_DIR)/memory.c -o $(BIN_DIR)/libmemory.so
+
+manualrun:
+	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so $(arg)
+
+run:
+	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so $(BIN_DIR)/main
 
 $(DIRS):
 		mkdir $(OBJ_DIR)
