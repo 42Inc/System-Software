@@ -55,25 +55,27 @@ void _print_heap() {
   size_t iterator = 0;
   size_t __heap_size = 0;
   while (cursor != NULL) {
-if (debug) {
-    fprintf(stderr,
-            "%sHeap[%lu]%s - %p:%lu\t| %sStatus%s : %d | %sp%s|%sc%s|%sn%s = "
-            "%s%p%s|%s%p%s|%s%p%s\n",
-            YELLOW, iterator++, RESET, cursor->address, cursor->size, YELLOW,
-            RESET, cursor->status, RED, RESET, BLUE, RESET, GREEN, RESET, RED,
-            cursor->prev, RESET, BLUE, cursor, RESET, GREEN, cursor->next,
-            RESET);
-}
-    if (cursor->status == BUSY) __heap_size = __heap_size + cursor->size;
-      cursor = cursor->next;
+    if (debug) {
+      fprintf(stderr,
+              "%sHeap[%lu]%s - %p:%lu\t| %sStatus%s : %d | %sp%s|%sc%s|%sn%s = "
+              "%s%p%s|%s%p%s|%s%p%s\n",
+              YELLOW, iterator++, RESET, cursor->address, cursor->size, YELLOW,
+              RESET, cursor->status, RED, RESET, BLUE, RESET, GREEN, RESET, RED,
+              cursor->prev, RESET, BLUE, cursor, RESET, GREEN, cursor->next,
+              RESET);
+    }
+    if (cursor->status == BUSY)
+      __heap_size = __heap_size + cursor->size;
+    cursor = cursor->next;
   }
   fprintf(stderr, "%sHeap size%s : %s%luB%s\n", YELLOW, RESET, GREEN,
           __heap_size, RESET);
-if (debug) {
-  fprintf(stderr, "%sHeap address range%s : %s%p%s:%s%p%s|%s%luB%s|[%lu:%lu]\n",
-          YELLOW, RESET, GREEN, heap, RESET, RED, heap + _heap_size, RESET,
-          CYAN, _heap_size, RESET, heap_minimum, heap_maximum);
-}
+  if (debug) {
+    fprintf(stderr,
+            "%sHeap address range%s : %s%p%s:%s%p%s|%s%luB%s|[%lu:%lu]\n",
+            YELLOW, RESET, GREEN, heap, RESET, RED, heap + _heap_size, RESET,
+            CYAN, _heap_size, RESET, heap_minimum, heap_maximum);
+  }
 }
 void _check_heap() {
   chunk_t *cursor = mem_chunk;
@@ -122,16 +124,15 @@ void _heap_init() {
         heap_blocks_managment = 0;
       }
     }
-      if (_local_heap_debug == NULL ||
-          strlen(_local_heap_debug) < 1) {
-        debug = 0;
+    if (_local_heap_debug == NULL || strlen(_local_heap_debug) < 1) {
+      debug = 0;
+    } else {
+      if (!strcmp("true", _local_heap_debug)) {
+        debug = 1;
       } else {
-        if (!strcmp("true", _local_heap_debug)) {
-          debug = 1;
-        } else {
-          debug = 0;
-        }
+        debug = 0;
       }
+    }
     if (_local_size == NULL || strlen(_local_size) < 1) {
       _heap_size = HEAP_SIZE;
     } else {
@@ -175,7 +176,7 @@ void _heap_init() {
   mem_chunk->prev = NULL;
   mem_chunk->status = FREE;
   fprintf(stderr, "%sInit heap complete%s\n", GREEN, RESET);
-  fprintf(stderr, "%sHeap address range%s : %s%p%s:%s%p%s|%s%lu%s|[%lu:%lu]\n",
+  fprintf(stderr, "%sHeap address range%s : %s%p%s:%s%p%s|%s%luB%s|[%lu:%lu]\n",
           YELLOW, RESET, GREEN, heap, RESET, RED, heap + _heap_size, RESET,
           CYAN, _heap_size, RESET, heap_minimum, heap_maximum);
   _print_heap();

@@ -12,8 +12,8 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Malloc\n");
     void *ptr = malloc(i * block_size);
     if (ptr == NULL) {
-      fprintf(stderr, "%sFatal error%s: Malloc (%d:%d)\n", RED, RESET,
-              i, block_size);
+      fprintf(stderr, "%sFatal error%s: Malloc (%d:%d)\n", RED, RESET, i,
+              block_size);
       return EXIT_FAILURE;
     }
 

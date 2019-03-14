@@ -5,8 +5,7 @@
 static int heap_size =  0;
 static int block_size = 0;
 
-static void swap(int* a, int* b)
-{
+static void swap(int *a, int *b) {
   int tmp = 0;
   tmp = *a;
   *a = *b;
@@ -17,6 +16,7 @@ int main(int argc, char **argv) {
   block_size = argc > 2 ? atoi(argv[2]) : 120;
   int i = 0;
   int j = 0;
+  fprintf(stdout, "Start\n");
   void* ptr1;
   void* ptr2;
   void* ptr3;
