@@ -45,8 +45,9 @@ int main(int argc, char **argv) {
     printf("%d ", ptr11[i]);
   printf("\n");
   fprintf(stderr, "/*----------------------------*/\n");
-  fprintf(stdout, "Malloc\n");
   ptr12 = (int*)malloc(sizeof(int) * 16);
+  fprintf(stderr, "/*----------------------------*/\n");
+  fprintf(stdout, "Malloc\n");
   for (i = 0; i < 16; ++i){
     ptr12[i] = rand()%100;
     printf("%d ", ptr12[i]);
@@ -65,5 +66,6 @@ int main(int argc, char **argv) {
     printf("%d ", ptr12[i]);
   }
   printf("\n");
+  fprintf(stderr, "/*----------------------------*/\n");
   return EXIT_SUCCESS;
 }

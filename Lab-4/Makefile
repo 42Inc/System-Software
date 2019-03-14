@@ -28,6 +28,12 @@ lib:
 manualrun:
 	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so $(arg)
 
+trace:
+	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so strace $(arg)
+
+debug:
+	gcc -o $(BIN_DIR)/debug $(arg) -L$(BIN_DIR)/ -lmemory -Wl,-rpath,$(PWD)/$(BIN_DIR)/
+
 run:
 	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so $(BIN_DIR)/main1_1
 	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so $(BIN_DIR)/main1_2

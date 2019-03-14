@@ -8,6 +8,8 @@ int main(int argc, char **argv) {
   int block_size = argc > 2 ? atoi(argv[2]) : 1024;
   int i = 0;
   for (i = 1; i <= iterator_max; ++i) {
+    fprintf(stderr, "/*----------------------------*/\n");
+    fprintf(stderr, "Malloc\n");
     void *ptr = malloc(i * block_size);
     if (ptr == NULL) {
       fprintf(stderr, "%sFatal error%s: Malloc (%d:%d)\n", RED, RESET,
