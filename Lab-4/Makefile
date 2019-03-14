@@ -15,12 +15,14 @@ HEAP_OBJ = $(OBJ_DIR)/heap.o
 all: bins
 
 
-bins: $(DIRS) objs
+bins: $(DIRS) lib objs
 	$(CC) $(MS_OBJ) $(CFLAGS) -o $(BIN_DIR)/ms_cmpl $(LIB)
 	$(CC) $(HEAP_OBJ) $(CFLAGS) -o $(BIN_DIR)/heap_cmpl $(LIB)
 	$(CC)  $(SRC_DIR)/main1_1.c -o $(BIN_DIR)/main1_1 $(LIB) $(CFLAGS) -ldl -fPIC
 	$(CC)  $(SRC_DIR)/main1_2.c -o $(BIN_DIR)/main1_2 $(LIB) $(CFLAGS) -ldl -fPIC
 	$(CC)  $(SRC_DIR)/main2.c -o $(BIN_DIR)/main2 $(LIB) $(CFLAGS) -ldl -fPIC
+
+lib:
 	gcc -shared -fPIC -ldl  $(SRC_DIR)/memory.c -o $(BIN_DIR)/libmemory.so
 
 manualrun:
