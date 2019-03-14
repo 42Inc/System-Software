@@ -7,6 +7,7 @@
 #define MYHEAP 1
 #define DEBUG 1
 static const size_t HEAP_SIZE = 10000000;
+static size_t _heap_size = 0;
 #define FREE 0
 #define BUSY 1
 #define BLOCK_MANAGMENT 0
@@ -79,18 +80,28 @@ void check_heap() {
 void heap_init() {
   heap = __libc_malloc(HEAP_SIZE);
   mem_chunk = (chunk_t *)__libc_malloc(sizeof(chunk_t));
+  char* _local_size = getenv("ENV_HEAP_SIZE");
+  if (_local_size == NULL || strlen(_local_size) < 1) {
+    _heap_size = HEAP_SIZE;
+  } else {
+    _heap_size = atol(_local_size);
+    if (_heap_size == 0) {
+      _heap_size = HEAP_SIZE;
+    }
+  }
+
   if (mem_chunk == NULL) {
     fprintf(stderr, "%sFatal error%s: Init heap\n", RED, RESET);
     abort();
   }
-  mem_chunk->size = HEAP_SIZE;
+  mem_chunk->size = _heap_size;
   mem_chunk->address = heap;
   mem_chunk->next = NULL;
   mem_chunk->prev = NULL;
   mem_chunk->status = FREE;
   fprintf(stderr, "%sInit heap complete%s\n", GREEN, RESET);
   fprintf(stderr, "%sHeap address range%s : %s%p%s:%s%p%s  %s%lu%s \n",
-          YELLOW, RESET, GREEN, heap, RESET, RED, heap + HEAP_SIZE, RESET, CYAN, HEAP_SIZE,
+          YELLOW, RESET, GREEN, heap, RESET, RED, heap + _heap_size, RESET, CYAN, _heap_size,
           RESET);
   print_heap();
 }

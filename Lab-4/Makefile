@@ -26,7 +26,7 @@ lib:
 	gcc -shared -fPIC -ldl  $(SRC_DIR)/memory.c -o $(BIN_DIR)/libmemory.so
 
 manualrun:
-	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so $(arg)
+	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so ENV_HEAP_SIZE=$(size) $(arg)
 
 trace:
 	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so strace $(arg)
