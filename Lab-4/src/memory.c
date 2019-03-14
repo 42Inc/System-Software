@@ -2,6 +2,7 @@
 #include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MYHEAP 1
 #define DEBUG 1
@@ -17,6 +18,10 @@ extern void *__libc_malloc(size_t);
 extern void *__libc_calloc(size_t, size_t);
 extern void *__libc_realloc(void *, size_t);
 extern void __libc_free(void *);
+void *malloc(size_t);
+void *calloc(size_t, size_t);
+void *realloc(void *, size_t);
+void free(void *);
 void _initialize_my_malloc(void);
 void _initialize_my_calloc(void);
 void _initialize_my_free(void);
@@ -120,6 +125,8 @@ void *realloc(void *ptr, size_t size) {
   #if !MYHEAP
   new_ptr = real_realloc(ptr, size);
   #else
+  new_ptr = malloc(size);
+  free(ptr);
   #endif
   fprintf(stderr, "%sRealloc hook%s - %p -> %p:%lu\t| %sCaller%s : %p\n", YELLOW, RESET, ptr,
           new_ptr, size, YELLOW, RESET, __builtin_return_address(0));
@@ -135,6 +142,8 @@ void *calloc(size_t blocks_count, size_t block_size) {
   #if !MYHEAP
   ptr = real_calloc(blocks_count, block_size);
   #else
+  ptr = malloc(blocks_count * block_size);
+  memset(ptr, 0, blocks_count * block_size);
   #endif
   fprintf(stderr, "%sCalloc hook%s - %p:%lu x %lu\t| %sCaller%s : %p\n", YELLOW, RESET, ptr,
           blocks_count, block_size, YELLOW, RESET, __builtin_return_address(0));
@@ -143,6 +152,7 @@ void *calloc(size_t blocks_count, size_t block_size) {
 
 void free(void *ptr) {
   chunk_t *cursor = NULL;
+  int _change = 0;
   if (real_free == NULL) {
     _initialize_my_free();
   }
@@ -158,15 +168,18 @@ void free(void *ptr) {
         cursor->prev->size = cursor->prev->size + cursor->size;
         cursor->next->prev = cursor->prev;
         real_free(cursor);
+        _change = 1;
         break;
       } else if (cursor->next != NULL && cursor->next->status == FREE) {
         cursor->prev->next = cursor->next;
         cursor->next->prev = cursor->prev;
         cursor->next->size = cursor->next->size + cursor->size;
         real_free(cursor);
+        _change = 1;
         break;
       } else {
         cursor->status = FREE;
+        _change = 1;
         break;
       }
     }
@@ -176,6 +189,9 @@ void free(void *ptr) {
   check_heap();
   print_heap();
   fprintf(stderr, "%sFree hook%s - %p\t| %sCaller%s : %p\n", YELLOW, RESET, ptr, YELLOW, RESET, __builtin_return_address(0));
+  if (_change) {
+    fprintf(stderr, "%sFree hook%s - %p\t| %sDouble free!%s\n", YELLOW, RESET, ptr, RED, RESET);
+  }
 }
 
 void _initialize_my_free(void) {
