@@ -6,9 +6,12 @@
 
 #define MYHEAP 1
 #define DEBUG 1
-static const unsigned long int HEAP_SIZE = 10000000;
+static const size_t HEAP_SIZE = 10000000;
 #define FREE 0
 #define BUSY 1
+#define BLOCK_MANAGMENT 0
+static const size_t MIN = 1998;
+static const size_t MAX = 1998;
 
 static void *(*real_malloc)(size_t) = NULL;
 static void *(*real_calloc)(size_t, size_t) = NULL;
@@ -99,6 +102,12 @@ void *malloc(size_t size) {
   if (real_malloc == NULL) {
     _initialize_my_malloc();
   }
+#if BLOCK_MANAGMENT
+  if (size > MAX || size < MIN) {
+    fprintf(stderr, "%sFatal error%s: Wrong malloc size %lu [%lu, %lu]\n", RED, RESET, size, MIN, MAX);
+    return NULL;
+  }
+#endif
 #if !MYHEAP
   ptr = real_malloc(size);
 #else
@@ -178,6 +187,7 @@ void free(void *ptr) {
   cursor = mem_chunk;
   while (cursor != NULL) {
     if (ptr == cursor->address) {
+      /*
       if (cursor->prev != NULL) {
         if (cursor->prev->status == FREE) {
           cursor->prev->next = cursor->next;
@@ -212,7 +222,11 @@ void free(void *ptr) {
         }
       } else {
         _change = 0;
-      }
+      }*/
+        cursor->status = FREE;
+        _size = cursor->size;
+        _change = 1;
+        break;
     }
     cursor = cursor->next;
   }
