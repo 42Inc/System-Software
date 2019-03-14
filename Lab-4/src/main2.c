@@ -67,5 +67,6 @@ int main(int argc, char **argv) {
   }
   printf("\n");
   fprintf(stderr, "/*----------------------------*/\n");
+
   return EXIT_SUCCESS;
 }

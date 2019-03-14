@@ -3,11 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #define FREE 0
 #define BUSY 1
 #define MIN 1998
 #define MAX 1998
 
+pthread_mutex_t heap_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int heap_use = 1;
 static size_t debug = 1;
 
@@ -95,8 +97,6 @@ void _check_heap() {
 }
 
 void _heap_init() {
-  heap = __libc_malloc(HEAP_SIZE);
-  mem_chunk = (chunk_t *)__libc_malloc(sizeof(chunk_t));
   char *_local_size = getenv("ENV_MEMHOOK_HEAP_SIZE");
   char *_local_use_heap = getenv("ENV_MEMHOOK_USE_HEAP");
   char *_local_heap_blocks_managment =
@@ -166,7 +166,9 @@ void _heap_init() {
     }
   }
 
-  if (mem_chunk == NULL) {
+  heap = __libc_malloc(_heap_size);
+  mem_chunk = (chunk_t *)__libc_malloc(sizeof(chunk_t));
+  if (mem_chunk == NULL || heap == NULL) {
     fprintf(stderr, "%sFatal error%s: Init heap\n", RED, RESET);
     abort();
   }
@@ -199,10 +201,21 @@ void *malloc(size_t size) {
   if (!heap_use) {
     ptr = real_malloc(size);
   } else {
+    pthread_mutex_lock(&heap_mutex);
     cursor = mem_chunk;
     while (cursor != NULL) {
       if (cursor->status == FREE && cursor->size >= size) {
+        if (cursor->size == size) {
+          cursor->status = BUSY;
+          ptr = cursor->address;
+          break;
+        }
         new_heap_node = (chunk_t *)real_malloc(sizeof(chunk_t));
+        if (new_heap_node == NULL) {
+            fprintf(stderr, "%sFatal error%s: Cannot create memchunk\n",
+                    RED, RESET, size, heap_minimum, heap_maximum);
+            return NULL;
+        }
         new_heap_node->size = cursor->size - size;
         new_heap_node->address = cursor->address + size;
         new_heap_node->next = cursor->next;
@@ -218,6 +231,7 @@ void *malloc(size_t size) {
       cursor = cursor->next;
     }
     _print_heap();
+  pthread_mutex_unlock(&heap_mutex);
   }
   fprintf(stderr, "%sMalloc hook[%lu]%s - %p:%lu\t| %sCaller%s : %p\n", YELLOW,
           malloc_use++, RESET, ptr, size, YELLOW, RESET,
@@ -233,10 +247,16 @@ void *realloc(void *ptr, size_t size) {
   if (!heap_use) {
     new_ptr = real_realloc(ptr, size);
   } else {
-    new_ptr = malloc(size);
-    if (new_ptr != NULL && ptr != NULL) {
-      memcpy(new_ptr, ptr, size);
-      free(ptr);
+    if (heap <= ptr && ptr < heap + _heap_size) {
+      new_ptr = malloc(size);
+      if (new_ptr != NULL && ptr != NULL) {
+        memcpy(new_ptr, ptr, size);
+        free(ptr);
+      }
+    } else if (ptr == NULL) {
+      new_ptr = malloc(size);
+    } else {
+      ptr = real_realloc(ptr, size);
     }
   }
   fprintf(stderr, "%sRealloc hook[%lu]%s - %p -> %p:%lu\t| %sCaller%s : %p\n",
@@ -265,7 +285,6 @@ void *calloc(size_t blocks_count, size_t block_size) {
 }
 
 void free(void *ptr) {
-
   chunk_t *cursor = NULL;
   int _change = 0;
   size_t _size = 0;
@@ -276,6 +295,7 @@ void free(void *ptr) {
   if (!heap_use) {
     real_free(ptr);
   } else {
+  pthread_mutex_lock(&heap_mutex);
     cursor = mem_chunk;
     while (cursor != NULL) {
       if (ptr == cursor->address) {
@@ -292,6 +312,7 @@ void free(void *ptr) {
       fprintf(stderr, "%sFree hook%s - %p\t| %sDouble free!%s\n", YELLOW, RESET,
               ptr, RED, RESET);
     }
+    pthread_mutex_unlock(&heap_mutex);
   }
   fprintf(stderr, "%sFree hook[%lu]%s - %p:%lu\t| %sCaller%s : %p\n", YELLOW,
           free_use++, RESET, ptr, _size, YELLOW, RESET,
@@ -301,8 +322,12 @@ void free(void *ptr) {
 void __initialize_my_free(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init free hook%s\n", CYAN, RESET);
-  if (heap == NULL)
+  if (heap == NULL){
+
+    pthread_mutex_lock(&heap_mutex);
     _heap_init();
+
+    pthread_mutex_unlock(&heap_mutex);}
   if (real_free != NULL)
     return;
   real_free = __libc_free;
@@ -319,8 +344,12 @@ void __initialize_my_free(void) {
 void __initialize_my_realloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init realloc hook%s\n", CYAN, RESET);
-  if (heap == NULL)
+  if (heap == NULL){
+
+    pthread_mutex_lock(&heap_mutex);
     _heap_init();
+
+    pthread_mutex_unlock(&heap_mutex);}
   if (real_realloc != NULL)
     return;
   real_realloc = __libc_realloc;
@@ -337,8 +366,12 @@ void __initialize_my_realloc(void) {
 void __initialize_my_malloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init malloc hook%s\n", CYAN, RESET);
-  if (heap == NULL)
+  if (heap == NULL){
+
+    pthread_mutex_lock(&heap_mutex);
     _heap_init();
+
+    pthread_mutex_unlock(&heap_mutex);}
   if (real_malloc != NULL)
     return;
   real_malloc = __libc_malloc;
@@ -355,8 +388,12 @@ void __initialize_my_malloc(void) {
 void __initialize_my_calloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init calloc hook%s\n", CYAN, RESET);
-  if (heap == NULL)
+  if (heap == NULL){
+
+    pthread_mutex_lock(&heap_mutex);
     _heap_init();
+
+    pthread_mutex_unlock(&heap_mutex);}
   if (real_calloc != NULL)
     return;
   real_calloc = __libc_calloc;

@@ -23,7 +23,7 @@ bins: $(DIRS) lib objs
 	$(CC)  $(SRC_DIR)/main2.c -o $(BIN_DIR)/main2 $(LIB) $(CFLAGS) -ldl -fPIC
 
 lib:
-	gcc -shared -fPIC -ldl  $(SRC_DIR)/memory.c -o $(BIN_DIR)/libmemory.so
+	gcc -shared -fPIC -ldl -lpthread $(SRC_DIR)/memory.c -o $(BIN_DIR)/libmemory.so
 
 manualrun:
 	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so ENV_MEMHOOK_HEAP_SIZE=$(size) ENV_MEMHOOK_USE_HEAP=$(heap) ENV_MEMHOOK_USE_BLOCK_MANAGMENT=$(blocks) ENV_MEMHOOK_BLOCK_MAX=$(max) ENV_MEMHOOK_BLOCK_MIN=$(min) ENV_MEMHOOK_DEBUG=$(debug) $(target)
