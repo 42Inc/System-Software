@@ -3,16 +3,22 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-static int heap_use = 1;
-#define DEBUG 1
-static const size_t HEAP_SIZE = 10000000;
-static size_t _heap_size = 0;
 #define FREE 0
 #define BUSY 1
-static int heap_blocks_managment = 0;
 #define MIN 1998
 #define MAX 1998
+
+static int heap_use = 1;
+static size_t debug = 1;
+
+static size_t realloc_use = 0;
+static size_t calloc_use = 0;
+static size_t malloc_use = 0;
+static size_t free_use = 0;
+
+static const size_t HEAP_SIZE = 10000000;
+static size_t _heap_size = 0;
+static int heap_blocks_managment = 0;
 static size_t heap_minimum = MIN;
 static size_t heap_maximum = MAX;
 
@@ -28,10 +34,10 @@ void *malloc(size_t);
 void *calloc(size_t, size_t);
 void *realloc(void *, size_t);
 void free(void *);
-void _initialize_my_malloc(void);
-void _initialize_my_calloc(void);
-void _initialize_my_free(void);
-void _initialize_my_realloc(void);
+void __initialize_my_malloc(void);
+void __initialize_my_calloc(void);
+void __initialize_my_free(void);
+void __initialize_my_realloc(void);
 
 typedef struct memory_chunk {
   size_t size;
@@ -44,24 +50,32 @@ typedef struct memory_chunk {
 static void *heap = NULL;
 static chunk_t *mem_chunk = NULL;
 
-void print_heap() {
-#if DEBUG
+void _print_heap() {
   chunk_t *cursor = mem_chunk;
-  int iterator = 0;
+  size_t iterator = 0;
+  size_t __heap_size = 0;
   while (cursor != NULL) {
+if (debug) {
     fprintf(stderr,
-            "%sHeap[%d]%s - %p:%lu\t| %sStatus%s : %d | %sp%s|%sc%s|%sn%s = "
+            "%sHeap[%lu]%s - %p:%lu\t| %sStatus%s : %d | %sp%s|%sc%s|%sn%s = "
             "%s%p%s|%s%p%s|%s%p%s\n",
             YELLOW, iterator++, RESET, cursor->address, cursor->size, YELLOW,
             RESET, cursor->status, RED, RESET, BLUE, RESET, GREEN, RESET, RED,
             cursor->prev, RESET, BLUE, cursor, RESET, GREEN, cursor->next,
             RESET);
-    cursor = cursor->next;
-  }
-#endif
 }
-void check_heap() {
-#if DEBUG
+    if (cursor->status == BUSY) __heap_size = __heap_size + cursor->size;
+      cursor = cursor->next;
+  }
+  fprintf(stderr, "%sHeap size%s : %s%luB%s\n", YELLOW, RESET, GREEN,
+          __heap_size, RESET);
+if (debug) {
+  fprintf(stderr, "%sHeap address range%s : %s%p%s:%s%p%s|%s%luB%s|[%lu:%lu]\n",
+          YELLOW, RESET, GREEN, heap, RESET, RED, heap + _heap_size, RESET,
+          CYAN, _heap_size, RESET, heap_minimum, heap_maximum);
+}
+}
+void _check_heap() {
   chunk_t *cursor = mem_chunk;
   chunk_t *tmpcursor = NULL;
   int iterator = 0;
@@ -76,18 +90,18 @@ void check_heap() {
     }
     cursor = cursor->next;
   }
-#endif
 }
 
-void heap_init() {
+void _heap_init() {
   heap = __libc_malloc(HEAP_SIZE);
   mem_chunk = (chunk_t *)__libc_malloc(sizeof(chunk_t));
   char *_local_size = getenv("ENV_MEMHOOK_HEAP_SIZE");
   char *_local_use_heap = getenv("ENV_MEMHOOK_USE_HEAP");
   char *_local_heap_blocks_managment =
-      getenv("ENV_MEMHOOK_USE_heap_blocks_managment");
-  char *_local_heap_maximum = getenv("ENV_MEMHOOK_BLOCK_heap_maximum");
-  char *_local_heap_minimum = getenv("ENV_MEMHOOK_BLOCK_heap_minimum");
+      getenv("ENV_MEMHOOK_USE_HEAP_BLOCKS_MANAGMENT");
+  char *_local_heap_maximum = getenv("ENV_MEMHOOK_BLOCK_HEAP_MAXIMUM");
+  char *_local_heap_minimum = getenv("ENV_MEMHOOK_BLOCK_HEAP_MINIMUM");
+  char *_local_heap_debug = getenv("ENV_MEMHOOK_DEBUG");
   if (_local_use_heap == NULL || strlen(_local_use_heap) < 1) {
     heap_use = 0;
   } else {
@@ -108,6 +122,16 @@ void heap_init() {
         heap_blocks_managment = 0;
       }
     }
+      if (_local_heap_debug == NULL ||
+          strlen(_local_heap_debug) < 1) {
+        debug = 0;
+      } else {
+        if (!strcmp("true", _local_heap_debug)) {
+          debug = 1;
+        } else {
+          debug = 0;
+        }
+      }
     if (_local_size == NULL || strlen(_local_size) < 1) {
       _heap_size = HEAP_SIZE;
     } else {
@@ -151,10 +175,10 @@ void heap_init() {
   mem_chunk->prev = NULL;
   mem_chunk->status = FREE;
   fprintf(stderr, "%sInit heap complete%s\n", GREEN, RESET);
-  fprintf(stderr, "%sHeap address range%s : %s%p%s:%s%p%s  %s%lu%s [%lu:%lu]\n",
+  fprintf(stderr, "%sHeap address range%s : %s%p%s:%s%p%s|%s%lu%s|[%lu:%lu]\n",
           YELLOW, RESET, GREEN, heap, RESET, RED, heap + _heap_size, RESET,
-          CYAN, _heap_size, RESET, heap_minimum, heap_heap_maximumimum);
-  print_heap();
+          CYAN, _heap_size, RESET, heap_minimum, heap_maximum);
+  _print_heap();
 }
 
 void *malloc(size_t size) {
@@ -162,7 +186,7 @@ void *malloc(size_t size) {
   chunk_t *cursor = NULL;
   chunk_t *new_heap_node = NULL;
   if (real_malloc == NULL) {
-    _initialize_my_malloc();
+    __initialize_my_malloc();
   }
   if (heap_blocks_managment) {
     if (size > heap_maximum || size < heap_minimum) {
@@ -192,27 +216,30 @@ void *malloc(size_t size) {
       }
       cursor = cursor->next;
     }
-    print_heap();
+    _print_heap();
   }
-  fprintf(stderr, "%sMalloc hook%s - %p:%lu\t| %sCaller%s : %p\n", YELLOW,
-          RESET, ptr, size, YELLOW, RESET, __builtin_return_address(0));
+  fprintf(stderr, "%sMalloc hook[%lu]%s - %p:%lu\t| %sCaller%s : %p\n", YELLOW,
+          malloc_use++, RESET, ptr, size, YELLOW, RESET,
+          __builtin_return_address(0));
   return ptr;
 }
 
 void *realloc(void *ptr, size_t size) {
   void *new_ptr = NULL;
   if (real_realloc == NULL) {
-    _initialize_my_realloc();
+    __initialize_my_realloc();
   }
   if (!heap_use) {
     new_ptr = real_realloc(ptr, size);
   } else {
     new_ptr = malloc(size);
-    free(ptr);
-    print_heap();
+    if (new_ptr != NULL && ptr != NULL) {
+      memcpy(new_ptr, ptr, size);
+      free(ptr);
+    }
   }
-  fprintf(stderr, "%sRealloc hook%s - %p -> %p:%lu\t| %sCaller%s : %p\n",
-          YELLOW, RESET, ptr, new_ptr, size, YELLOW, RESET,
+  fprintf(stderr, "%sRealloc hook[%lu]%s - %p -> %p:%lu\t| %sCaller%s : %p\n",
+          YELLOW, realloc_use++, RESET, ptr, new_ptr, size, YELLOW, RESET,
           __builtin_return_address(0));
   return new_ptr;
 }
@@ -220,7 +247,7 @@ void *realloc(void *ptr, size_t size) {
 void *calloc(size_t blocks_count, size_t block_size) {
   void *ptr = NULL;
   if (real_calloc == NULL) {
-    _initialize_my_calloc();
+    __initialize_my_calloc();
   }
 
   if (!heap_use) {
@@ -228,20 +255,21 @@ void *calloc(size_t blocks_count, size_t block_size) {
   } else {
     ptr = malloc(blocks_count * block_size);
     memset(ptr, 0, blocks_count * block_size);
-    print_heap();
+    //    print_heap();
   }
-  fprintf(stderr, "%sCalloc hook%s - %p:%lu x %lu\t| %sCaller%s : %p\n", YELLOW,
-          RESET, ptr, blocks_count, block_size, YELLOW, RESET,
-          __builtin_return_address(0));
+  fprintf(stderr, "%sCalloc hook[%lu]%s - %p:%lu x %lu\t| %sCaller%s : %p\n",
+          YELLOW, calloc_use++, RESET, ptr, blocks_count, block_size, YELLOW,
+          RESET, __builtin_return_address(0));
   return ptr;
 }
 
 void free(void *ptr) {
+
   chunk_t *cursor = NULL;
   int _change = 0;
   size_t _size = 0;
   if (real_free == NULL) {
-    _initialize_my_free();
+    __initialize_my_free();
   }
 
   if (!heap_use) {
@@ -257,22 +285,23 @@ void free(void *ptr) {
       }
       cursor = cursor->next;
     }
-    check_heap();
-    print_heap();
+    _check_heap();
+    _print_heap();
     if (!_change) {
       fprintf(stderr, "%sFree hook%s - %p\t| %sDouble free!%s\n", YELLOW, RESET,
               ptr, RED, RESET);
     }
   }
-  fprintf(stderr, "%sFree hook%s - %p:%lu\t| %sCaller%s : %p\n", YELLOW, RESET,
-          ptr, _size, YELLOW, RESET, __builtin_return_address(0));
+  fprintf(stderr, "%sFree hook[%lu]%s - %p:%lu\t| %sCaller%s : %p\n", YELLOW,
+          free_use++, RESET, ptr, _size, YELLOW, RESET,
+          __builtin_return_address(0));
 }
 
-void _initialize_my_free(void) {
+void __initialize_my_free(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init free hook%s\n", CYAN, RESET);
   if (heap == NULL)
-    heap_init();
+    _heap_init();
   if (real_free != NULL)
     return;
   real_free = __libc_free;
@@ -286,11 +315,11 @@ void _initialize_my_free(void) {
   fprintf(stderr, "/*----------------------------*/\n");
 }
 
-void _initialize_my_realloc(void) {
+void __initialize_my_realloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init realloc hook%s\n", CYAN, RESET);
   if (heap == NULL)
-    heap_init();
+    _heap_init();
   if (real_realloc != NULL)
     return;
   real_realloc = __libc_realloc;
@@ -304,11 +333,11 @@ void _initialize_my_realloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
 }
 
-void _initialize_my_malloc(void) {
+void __initialize_my_malloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init malloc hook%s\n", CYAN, RESET);
   if (heap == NULL)
-    heap_init();
+    _heap_init();
   if (real_malloc != NULL)
     return;
   real_malloc = __libc_malloc;
@@ -322,11 +351,11 @@ void _initialize_my_malloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
 }
 
-void _initialize_my_calloc(void) {
+void __initialize_my_calloc(void) {
   fprintf(stderr, "/*----------------------------*/\n");
   fprintf(stderr, "%sStart Init calloc hook%s\n", CYAN, RESET);
   if (heap == NULL)
-    heap_init();
+    _heap_init();
   if (real_calloc != NULL)
     return;
   real_calloc = __libc_calloc;
