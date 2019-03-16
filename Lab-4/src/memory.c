@@ -16,6 +16,7 @@ static size_t debug = 1;
 static size_t realloc_use = 0;
 static size_t calloc_use = 0;
 static size_t malloc_use = 0;
+static size_t malloc_use_busy = 0;
 static size_t free_use = 0;
 
 static const size_t HEAP_SIZE = 10000000;
@@ -56,6 +57,7 @@ void _print_heap() {
   chunk_t *cursor = mem_chunk;
   size_t iterator = 0;
   size_t __heap_size = 0;
+  malloc_use_busy = 0;
   while (cursor != NULL) {
     if (debug) {
       fprintf(stderr,
@@ -66,8 +68,10 @@ void _print_heap() {
               cursor->prev, RESET, BLUE, cursor, RESET, GREEN, cursor->next,
               RESET);
     }
-    if (cursor->status == BUSY)
+    if (cursor->status == BUSY) {
       __heap_size = __heap_size + cursor->size;
+      malloc_use_busy++;
+    }
     cursor = cursor->next;
   }
   fprintf(stderr, "%sHeap size%s : %s%luB%s\n", YELLOW, RESET, GREEN,
@@ -200,14 +204,15 @@ void *malloc(size_t size) {
   }
   //For Lab-5
   /*
-  if (malloc_use >= 77){
+  if (malloc_use_busy >= 77){
     fprintf(stderr, "%sFatal error%s: Wrong malloc block number %lu\n",
-            RED, RESET, malloc_use);
+            RED, RESET, malloc_use_busy);
              return NULL;
   }
   */
   if (!heap_use) {
     ptr = real_malloc(size);
+    malloc_use_busy++;
   } else {
     pthread_mutex_lock(&heap_mutex);
     cursor = mem_chunk;
@@ -284,6 +289,7 @@ void *calloc(size_t blocks_count, size_t block_size) {
 
   if (!heap_use) {
     ptr = real_calloc(blocks_count, block_size);
+    malloc_use_busy++;
   } else {
     ptr = malloc(blocks_count * block_size);
     memset(ptr, 0, blocks_count * block_size);
@@ -305,6 +311,7 @@ void free(void *ptr) {
 
   if (!heap_use) {
     real_free(ptr);
+    malloc_use_busy--;
   } else {
     pthread_mutex_lock(&heap_mutex);
     cursor = mem_chunk;
