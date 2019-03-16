@@ -198,6 +198,14 @@ void *malloc(size_t size) {
       return NULL;
     }
   }
+  //For Lab-5
+  /*
+  if (malloc_use >= 77){
+    fprintf(stderr, "%sFatal error%s: Wrong malloc block number %lu\n",
+            RED, RESET, malloc_use);
+             return NULL;
+  }
+  */
   if (!heap_use) {
     ptr = real_malloc(size);
   } else {
