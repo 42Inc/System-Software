@@ -26,7 +26,7 @@ lib:
 	gcc -shared -fPIC -ldl -lpthread $(SRC_DIR)/memory.c -o $(BIN_DIR)/libmemory.so
 
 manualrun:
-	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so ENV_MEMHOOK_HEAP_SIZE=$(size) ENV_MEMHOOK_USE_HEAP=$(heap) ENV_MEMHOOK_USE_BLOCK_MANAGMENT=$(blocks) ENV_MEMHOOK_BLOCK_MAX=$(max) ENV_MEMHOOK_BLOCK_MIN=$(min) ENV_MEMHOOK_DEBUG=$(debug) $(target)
+	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so ENV_MEMHOOK_HEAP_SIZE=$(size) ENV_MEMHOOK_USE_HEAP=$(heap) ENV_MEMHOOK_USE_HEAP_BLOCKS_MANAGMENT=$(blocks) ENV_MEMHOOK_BLOCK_HEAP_MAXIMUM=$(max) ENV_MEMHOOK_BLOCK_HEAP_MINIMUM=$(min) ENV_MEMHOOK_DEBUG=$(debug) $(target)
 
 trace:
 	LD_PRELOAD=$(PWD)/$(BIN_DIR)/libmemory.so strace $(target)
