@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
-echo "/*Chiphers ---------------------------------*/"
+echo "/*Chiphers -------------------------------*/"
 openssl enc -ciphers
-echo "/*Digests ---------------------------------*/"
+echo "/*Digests --------------------------------*/"
 openssl list --digest-commands
 echo "/*Rsautl ---------------------------------*/"
 openssl rsautl --help
-echo "/*---------------------------------*/"
+echo "/*Digest ---------------------------------*/"
+openssl dgst --help
+echo "/*----------------------------------------*/"
