@@ -20,3 +20,13 @@ $(OBJ_PATH):
 
 $(BIN_PATH):
 	$(if ifeq test -d "$(BIN_PATH)" 0, @mkdir -p $(BIN_PATH))
+
+clean:
+	rm -rf $(OBJ_PATH)
+	rm -rf $(BIN_PATH)
+	rm -f *key
+	rm -f *.dgst
+	rm -f *.pem
+	rm -f *.pub
+	rm -f *.enc
+	rm -f *.dec
