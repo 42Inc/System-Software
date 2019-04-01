@@ -30,3 +30,5 @@ clean:
 	rm -f *.pub
 	rm -f *.enc
 	rm -f *.dec
+	rm -f *.bin
+	rm -f *.dat

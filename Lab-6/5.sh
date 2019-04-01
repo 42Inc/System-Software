@@ -1,13 +1,12 @@
 #/usr/bin/env bash
-if (( $# < 1 ))
+if (( $# < 2 ))
 then
   echo "Usage:"
   echo "\$1 - key file"
+  echo "\$2 - file name"
   echo "aborted"
   exit
 fi
-echo "Encrypt testfile_1.dat"
-openssl rsautl -encrypt -inkey $1.pub -pubin -in testfile_1.dat -out task2_testfile_1.dat.enc
-echo "Encrypt testfile_2.bin"
-openssl rsautl -encrypt -inkey $1.pub -pubin -in testfile_2.bin -out task2_testfile_2.bin.enc
+echo "Encrypt $2"
+openssl rsautl -encrypt -inkey $1.pub -pubin -in $2 -out task2_"$2".enc
 echo "Complete."
