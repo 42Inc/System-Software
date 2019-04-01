@@ -36,7 +36,11 @@ void generate_binary(char** argv) {
   size_t size = 100;
   size_t i = 0;
   unsigned char byte = 0;
-  int fd = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  int fd = -1;
+  if (!strcmp(argv[2], "stdout"))
+    fd = 1;
+  else
+    fd = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, 0666);
   if (argv[3] != NULL) {
     size = atoi(argv[3]);
     printf("Size set in %lu\n", size);
@@ -46,7 +50,8 @@ void generate_binary(char** argv) {
     byte = rand() % 256;
     write(fd, &byte, 1);
   }
-  close(fd);
+  if (fd != 1)
+    close(fd);
 }
 
 void generate_text(char** argv) {
@@ -54,7 +59,12 @@ void generate_text(char** argv) {
   size_t i = 0;
   unsigned char byte = 0;
   unsigned char _register = 0;
-  int fd = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, 0666);
+
+  int fd = -1;
+  if (!strcmp(argv[2], "stdout"))
+    fd = 1;
+  else
+    fd = open(argv[2], O_CREAT | O_WRONLY | O_TRUNC, 0666);
   if (argv[3] != NULL) {
     size = atoi(argv[3]);
     printf("Size set in %lu\n", size);
@@ -65,5 +75,6 @@ void generate_text(char** argv) {
     byte = _register == 0 ? (rand() % ('Z' - 'A') + 'A') : (_register == 1 ? (rand() % ('z' - 'a') + 'a') : (rand() % ('9' - '0') + '0'));
     write(fd, &byte, 1);
   }
-  close(fd);
+  if (fd != 1)
+    close(fd);
 }
