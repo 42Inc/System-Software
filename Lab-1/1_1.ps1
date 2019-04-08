@@ -31,7 +31,7 @@ $End = 1535
   $Text = ""
   $Filename = generateName(Get-Random -max 17 -min 5)
   #Write-Host ("Name : " + $Filename)
-  $Size = Get-Random -max 102400 -min 100
+  $Size = Get-Random -max 1024 -min 100
   #  Write-Host ("Size : " + $Size)
   $Text = generateText($Size)
   #Write-Host ("Text : " + $Text)
