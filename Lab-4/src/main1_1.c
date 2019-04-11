@@ -38,6 +38,6 @@ int main(int argc, char **argv) {
   for (i = 0; i < blocks_count; ++i) {
     free(ptr[i]);
   }
-    free(ptr);
+  free(ptr);
   return EXIT_SUCCESS;
 }

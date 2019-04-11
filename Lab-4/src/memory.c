@@ -6,8 +6,8 @@
 #include <string.h>
 #define FREE 0
 #define BUSY 1
-#define MIN 1998
-#define MAX 1998
+#define MIN 1997
+#define MAX 13979
 
 pthread_mutex_t heap_mutex = PTHREAD_MUTEX_INITIALIZER;
 static int heap_use = 1;
@@ -202,14 +202,15 @@ void *malloc(size_t size) {
       return NULL;
     }
   }
+
   //For Lab-5
-  /*
   if (malloc_use_busy >= 77){
     fprintf(stderr, "%sFatal error%s: Wrong malloc block number %lu\n",
             RED, RESET, malloc_use_busy);
              return NULL;
   }
-  */
+  //For Lab-5
+
   if (!heap_use) {
     ptr = real_malloc(size);
     malloc_use_busy++;

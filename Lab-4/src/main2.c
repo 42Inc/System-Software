@@ -22,11 +22,6 @@ int main(int argc, char **argv) {
   void* ptr3;
   void* ptr4;
   void* ptr5;
-  void* ptr6;
-  void* ptr7;
-  void* ptr8;
-  void* ptr9;
-  void* ptr10;
   char* ptr11;
   int* ptr12;
 

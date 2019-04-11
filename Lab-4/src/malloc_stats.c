@@ -13,9 +13,9 @@ int main(int argc, char const *argv[])
     printf ("Error!\n");
     exit(EXIT_FAILURE);
   }
-  strcpy (str, "Первый раз");
+  strcpy (str, "System Software");
   array[4] = strlen(str);
-  printf ("Строка [%s] имеет длинну %d символов\n", str, array[4]);
+  printf ("String [%s] has %d symbols\n", str, array[4]);
   free (str);
   free (array);
   return EXIT_SUCCESS;
