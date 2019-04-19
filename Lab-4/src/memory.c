@@ -90,10 +90,17 @@ void _check_heap() {
   while (cursor != NULL) {
     if (cursor->next != NULL) {
       if (cursor->status == FREE && cursor->next->status == FREE) {
-        tmpcursor = cursor->next;
-        cursor->next = tmpcursor->next;
-        cursor->size = cursor->size + tmpcursor->size;
-        real_free(tmpcursor);
+          tmpcursor = cursor->next;
+        if (tmpcursor->next != NULL) {
+          tmpcursor->next->prev = tmpcursor->prev;
+          cursor->next = tmpcursor->next;
+          cursor->size = cursor->size + tmpcursor->size;
+          real_free(tmpcursor);
+        } else {
+          cursor->next = NULL;
+          cursor->size = cursor->size + tmpcursor->size;
+          real_free(tmpcursor);
+        }
       }
     }
     cursor = cursor->next;
